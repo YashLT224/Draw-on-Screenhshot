@@ -15,6 +15,7 @@ import a2 from "./a2.png";
 import fullpage from "./fullpage.png";
 import img1028 from "./1028.png";
 import img1920 from "./1920.png";
+import img1028X9941 from "./1042x9413.png";
 
 function generateRandomString(length) {
   let result = "";
@@ -210,6 +211,9 @@ const ReactkonvaDraw = ({initialRectangles}) => {
  
 
   const handleImageLoaded = (e) => {
+
+    console.log(e.target.naturalWidth,e.target.clientWidth,'naturalwidth')
+      
     setNaturalDimensions({
       width: e.target.naturalWidth,
       height: e.target.naturalHeight,
@@ -221,19 +225,19 @@ const ReactkonvaDraw = ({initialRectangles}) => {
   };
 
 
-  useEffect(() => {
-    // Get the width of the image element
-    if (imageRef.current) {
-      setImageDimensions({
-        width: imageRef.current.clientWidth,
-        height: imageRef.current.clientHeight,
-      });
-      setNaturalDimensions({
-        width: imageRef.current.naturalWidth,
-        height: imageRef.current.naturalHeight,
-      });
-    }
-  }, [imageRef,image]);
+//   useEffect(() => {     //useless
+//     // Get the width of the image element
+//     if (imageRef.current) {
+//       setImageDimensions({
+//         width: imageRef.current.clientWidth,
+//         height: imageRef.current.clientHeight,
+//       });
+//       setNaturalDimensions({
+//         width: imageRef.current.naturalWidth,
+//         height: imageRef.current.naturalHeight,
+//       });
+//     }
+//   }, [imageRef,image]);
 
 
 //   Default rectangles drawn
@@ -249,10 +253,9 @@ const ReactkonvaDraw = ({initialRectangles}) => {
 //     }
 //   }, [imageDimensions, naturalDimensions]);
 
-  const fetchAndScaleRectangles = (naturalDimensions, imageDimensions) => {
-    // Simulate fetching data from backend
- 
-    const scaledRectangles = rectangles.map((rect) =>
+  const fetchAndScaleRectangles = (naturalDimensions, imageDimensions,Rectangles) => {
+    // Simulate fetching data from backen
+    const scaledRectangles = Rectangles.map((rect) =>
       scaleToDisplayedSize(rect, naturalDimensions, imageDimensions)
     );
     setRectangles(scaledRectangles);
@@ -295,8 +298,8 @@ const ReactkonvaDraw = ({initialRectangles}) => {
     const scaledRectangles = rectangles.map((rect) =>
       scaleToNaturalSize(rect, imageDimensions, naturalDimensions)
     );
-    console.log(scaledRectangles);
-    setRectangles(scaledRectangles);
+    console.log(scaledRectangles,'output')
+    return scaledRectangles;
   };
 
    /*------------------------controls start------------------------ */
@@ -380,12 +383,12 @@ useEffect(() => {
   useEffect(() => {
     // Get the width of the image element
     if (imageRef.current&&naturalDimensions?.width>0&&imageDimensions?.width>0) {
-        debugger;
+        // debugger;
      const scaledRectangles = rectangles.map((rect) =>
      scaleRectangleCoordinates(rect, naturalDimensions.width,naturalDimensions.height)
    );
     console.log(rectangles,scaledRectangles)
-      fetchAndScaleRectangles(naturalDimensions,imageDimensions)
+      fetchAndScaleRectangles(naturalDimensions,imageDimensions,scaledRectangles)
       
     }
   }, [naturalDimensions]);
@@ -396,28 +399,70 @@ useEffect(() => {
 
 
 
-  function scaleRectangleCoordinates(rect, newWidth,newHeight) {
-    // Calculate scaling factors for width and height
-    const scaleX = newWidth / rect.imgNaturalWidth;
-    const scaleY = newHeight / rect.imgNaturalHeight;
+//   function scaleRectangleCoordinates(rect, newWidth, newHeight) {
+//       debugger;
+//     // Check if the new dimensions are the same as the original image dimensions
+//     // if (newWidth === rect.imgNaturalWidth && newHeight === rect.imgNaturalHeight) {
+//     //   // If the dimensions are the same, return the original rectangle
+//     //   return rect;
+//     // }
   
-    // Scale the coordinates and dimensions of the rectangle
-    const scaledRect = {
-      ...rect,
-      x: rect.x * scaleX,
-      y: rect.y * scaleY,
-      width: rect.width * scaleX,
-      height: rect.height * scaleY,
-    };
+//     // Calculate scaling factors for width and height
+//     const scaleX = newWidth / rect.imgNaturalWidth;
+//     const scaleY = newHeight / rect.imgNaturalHeight;
   
-    return scaledRect;
-  }
+//     // Scale the coordinates and dimensions of the rectangle
+//     const scaledRect = {
+//       ...rect,
+//       x: rect.x * scaleX,
+//       y: rect.y * scaleY,
+//       width: rect.width * scaleX,
+//       height: rect.height * scaleY,
+//     };
+  
+//     return scaledRect;
+//   }
   
 
-const ChangeImage=()=>{
-    SubmitCoordinates();
-  setImage(img1028)
+  function scaleRectangleCoordinates(rect, newWidth, newHeight) {
+     // Calculate scaling factors for width and height
+     const scaleX = newWidth / rect.imgNaturalWidth;
+     const scaleY = newHeight / rect.imgNaturalHeight;
+ 
+     // Scale the dimensions of the rectangle
+     const newWidthScaled = rect.width * scaleX;
+     const newHeightScaled = rect.height * scaleY;
+ 
+     // Calculate the position of the rectangle relative to the new image
+     const newX = (rect.x / rect.imgNaturalWidth) * newWidth;
+     const newY = (rect.y / rect.imgNaturalHeight) * newHeight;
+ 
+     // Adjust position to keep the rectangle within bounds
+     const adjustedX = Math.min(Math.max(newX, 0), newWidth - newWidthScaled);
+     const adjustedY = Math.min(Math.max(newY, 0), newHeight - newHeightScaled);
+ 
+     // Construct the scaled rectangle object
+     const scaledRect = {
+         ...rect,
+         x: adjustedX,
+         y: adjustedY,
+         width: newWidthScaled,
+         height: newHeightScaled,
+         imgNaturalWidth: newWidth,
+         imgNaturalHeight: newHeight,
+     };
+ 
+     
+   return scaledRect;
 }
+
+const ChangeImage=()=>{
+  let rectangles=  SubmitCoordinates();
+  setRectangles(rectangles);
+  setImage(img1028X9941)
+}
+
+console.log(rectangles,'rectangles')
   return (
       <>
 
@@ -430,6 +475,10 @@ const ChangeImage=()=>{
         paddingTop: "20px",
       }}
     >
+         <button onClick={addRectangles}>+ Add Area</button>
+      <button onClick={SubmitCoordinates}>Submit</button>
+      <button onClick={ChangeImage}>Switch Image</button>
+
       <div
         id="yellowdiv"
         style={{
@@ -491,9 +540,7 @@ const ChangeImage=()=>{
           </Stage>
         </div>}
       </div>
-      <button onClick={addRectangles}>+ Add Area</button>
-      <button onClick={SubmitCoordinates}>Submit</button>
-      <button onClick={ChangeImage}>Switch Image</button>
+     
     </div>
    
    </>
